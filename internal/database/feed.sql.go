@@ -13,7 +13,7 @@ import (
 )
 
 const createFeed = `-- name: CreateFeed :one
-INSERT INTO feed (id, created_at, updated_at, name, url, user_id)
+INSERT INTO feeds (id, created_at, updated_at, name, url, user_id)
 VALUES (
 	$1,
 	$2,
@@ -56,9 +56,9 @@ func (q *Queries) CreateFeed(ctx context.Context, arg CreateFeedParams) (Feed, e
 }
 
 const fetchFeed = `-- name: FetchFeed :many
-SELECT feed.name, feed.url, users.name
-FROM feed
-JOIN users ON feed.user_id = users.id
+SELECT feeds.name, feeds.url, users.name
+FROM feeds
+JOIN users ON feeds.user_id = users.id
 `
 
 type FetchFeedRow struct {
