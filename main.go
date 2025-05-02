@@ -40,8 +40,11 @@ func main() {
 	cmds.register("reset", handlerReset)
 	cmds.register("users", handlerUsers)
 	cmds.register("agg", handlerAgg)
-	cmds.register("addfeed", handlerAddFeed)
+	cmds.register("addfeed", middleWareLoggedIn(handlerAddFeed))
 	cmds.register("feeds", handlerFeeds)
+	cmds.register("follow", middleWareLoggedIn(handlerFollow))
+	cmds.register("following", middleWareLoggedIn(handlerFollowing))
+	cmds.register("unfollow", middleWareLoggedIn(handlerUnfollow))
 
 	if len(os.Args) < 2 {
 		fmt.Println(errors.New("Too few args to run"))
