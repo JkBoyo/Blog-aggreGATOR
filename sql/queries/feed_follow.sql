@@ -10,6 +10,7 @@ WITH inserted_feed_follows AS (
 		)
 RETURNING *
 )
+
 	SELECT 
 	inserted_feed_follows.*,
 	feeds.name AS feed_name,

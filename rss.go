@@ -1,11 +1,14 @@
 package main
 
 import (
+	"GATOR/internal/database"
 	"context"
 	"encoding/xml"
+	"fmt"
 	"html"
 	"io"
 	"net/http"
+	"time"
 )
 
 func fetchFeed(ctx context.Context, feedUrl string) (*RSSFeed, error) {
@@ -42,6 +45,30 @@ func fetchFeed(ctx context.Context, feedUrl string) (*RSSFeed, error) {
 	fetchedFeed.Channel.Description = html.UnescapeString(fetchedFeed.Channel.Description)
 
 	return &fetchedFeed, nil
+}
+
+func scrapeFeeds(s *state) error {
+	feedToFetch, err := s.db.GetNextFeedToFetch(context.Background())
+	if err != nil {
+		return err
+	}
+	fetchedFeedParams := database.MarkFeedFetchedParams{
+		UpdatedAt: time.Now(),
+		ID:        feedToFetch.ID,
+	}
+	err = s.db.MarkFeedFetched(context.Background(), fetchedFeedParams)
+	if err != nil {
+		return err
+	}
+	feed, err := fetchFeed(context.Background(), feedToFetch.Url)
+	if err != nil {
+		return err
+	}
+	fmt.Println("Feed Title: ", feed.Channel.Title)
+	for _, item := range feed.Channel.Item {
+		fmt.Println("  Post: ", item.Title)
+	}
+	return nil
 }
 
 type RSSFeed struct {
