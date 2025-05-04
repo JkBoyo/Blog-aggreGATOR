@@ -24,6 +24,7 @@ WITH inserted_feed_follows AS (
 		)
 RETURNING id, created_at, updated_at, user_id, feed_id
 )
+
 	SELECT 
 	inserted_feed_follows.id, inserted_feed_follows.created_at, inserted_feed_follows.updated_at, inserted_feed_follows.user_id, inserted_feed_follows.feed_id,
 	feeds.name AS feed_name,

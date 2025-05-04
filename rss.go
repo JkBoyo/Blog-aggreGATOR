@@ -3,12 +3,17 @@ package main
 import (
 	"GATOR/internal/database"
 	"context"
+	"database/sql"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"html"
 	"io"
 	"net/http"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 func fetchFeed(ctx context.Context, feedUrl string) (*RSSFeed, error) {
@@ -66,7 +71,36 @@ func scrapeFeeds(s *state) error {
 	}
 	fmt.Println("Feed Title: ", feed.Channel.Title)
 	for _, item := range feed.Channel.Item {
-		fmt.Println("  Post: ", item.Title)
+		pubDateTime, err := time.Parse(time.RFC1123Z, item.PubDate)
+		if err != nil {
+			fmt.Println(fmt.Errorf("PubDate parsing error: %v", err))
+			continue
+		}
+		if item.Link == "" {
+			fmt.Println(errors.New("no url found"))
+			continue
+		}
+		postParams := database.CreatePostParams{
+			ID:          uuid.New(),
+			CreatedAt:   time.Now(),
+			UpdatedAt:   time.Now(),
+			Title:       item.Title,
+			Url:         item.Link,
+			Description: sql.NullString{String: item.Description, Valid: item.Description != ""},
+			PublishedAt: sql.NullTime{Time: pubDateTime, Valid: item.PubDate != ""},
+			FeedID:      feedToFetch.ID,
+		}
+		post, err := s.db.CreatePost(context.Background(), postParams)
+		if err != nil {
+			pgErr, ok := err.(*pq.Error)
+			if ok && pgErr.Code == "23505" {
+				continue
+			} else {
+				fmt.Println(err)
+				continue
+			}
+		}
+		fmt.Println("  Post: ", post)
 	}
 	return nil
 }

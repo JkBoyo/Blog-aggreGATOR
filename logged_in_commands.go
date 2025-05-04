@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -95,6 +96,32 @@ func handlerUnfollow(s *state, cmd command, user database.User) error {
 	err := s.db.RemoveFeedFollow(context.Background(), unfollowParams)
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+func handlerBrowse(s *state, cmd command, user database.User) error {
+	var limit int
+	var err error
+	if len(cmd.args) > 0 {
+		limit, err = strconv.Atoi(cmd.args[0])
+		if err != nil {
+			return err
+		}
+	}
+	params := database.GetPostsForUserParams{
+		UserID: user.ID,
+		Limit:  int32(limit),
+	}
+	postsToBrowse, err := s.db.GetPostsForUser(context.Background(), params)
+	if err != nil {
+		return err
+	}
+	for _, post := range postsToBrowse {
+		dateStr := post.PublishedAt.Time.Format("Jan, 02, 2006")
+		fmt.Println("Title: ", post.Title)
+		fmt.Println("    Description: ", post.Description.String)
+		fmt.Println("    Published: ", dateStr)
 	}
 	return nil
 }
