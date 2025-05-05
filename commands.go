@@ -58,6 +58,18 @@ func handlerRegister(s *state, cmd command) error {
 	return nil
 }
 
+func handlerSetDb(s *state, cmd command) error {
+	if len(cmd.args) == 0 {
+		return errors.New("No db connection string entered")
+	}
+	dbConnStr := cmd.args[0]
+	err := s.config.SetDB(dbConnStr)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func handlerReset(s *state, cmd command) error {
 	err := s.db.Reset(context.Background())
 	if err != nil {

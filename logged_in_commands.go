@@ -108,6 +108,8 @@ func handlerBrowse(s *state, cmd command, user database.User) error {
 		if err != nil {
 			return err
 		}
+	} else {
+		limit = 2
 	}
 	params := database.GetPostsForUserParams{
 		UserID: user.ID,
@@ -122,6 +124,8 @@ func handlerBrowse(s *state, cmd command, user database.User) error {
 		fmt.Println("Title: ", post.Title)
 		fmt.Println("    Description: ", post.Description.String)
 		fmt.Println("    Published: ", dateStr)
+		fmt.Println("    Link: ", post.Url)
+		fmt.Println()
 	}
 	return nil
 }

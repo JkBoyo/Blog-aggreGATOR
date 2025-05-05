@@ -71,10 +71,27 @@ func scrapeFeeds(s *state) error {
 	}
 	fmt.Println("Feed Title: ", feed.Channel.Title)
 	for _, item := range feed.Channel.Item {
-		pubDateTime, err := time.Parse(time.RFC1123Z, item.PubDate)
-		if err != nil {
-			fmt.Println(fmt.Errorf("PubDate parsing error: %v", err))
-			continue
+		formatSlice := []string{
+			time.RFC1123Z,
+			time.RFC822,
+			time.RFC1123,
+			time.RFC3339,
+			time.RFC822Z,
+			time.RFC850,
+			time.RFC3339Nano,
+		}
+		var pubDateTime time.Time
+		for _, timeFormat := range formatSlice {
+			pubDateTime, err = time.Parse(timeFormat, item.PubDate)
+			if err != nil {
+				fmt.Println(fmt.Errorf("Feed time format %s doesn't match %s", timeFormat, item.PubDate))
+				continue
+			} else {
+				break
+			}
+		}
+		if pubDateTime.IsZero() {
+			fmt.Println("Published date matches no formats provided")
 		}
 		if item.Link == "" {
 			fmt.Println(errors.New("no url found"))
@@ -100,7 +117,7 @@ func scrapeFeeds(s *state) error {
 				continue
 			}
 		}
-		fmt.Println("  Post: ", post)
+		fmt.Println("  Post: ", post.Title)
 	}
 	return nil
 }

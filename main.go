@@ -46,6 +46,7 @@ func main() {
 	cmds.register("following", middleWareLoggedIn(handlerFollowing))
 	cmds.register("unfollow", middleWareLoggedIn(handlerUnfollow))
 	cmds.register("browse", middleWareLoggedIn(handlerBrowse))
+	cmds.register("set-db", handlerSetDb)
 
 	if len(os.Args) < 2 {
 		fmt.Println(errors.New("Too few args to run"))
