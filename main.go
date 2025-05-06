@@ -32,21 +32,45 @@ func main() {
 	}
 
 	cmds := commands{
-		commands: make(map[string]func(*state, command) error),
+		commands: make(map[string]cmdDet),
 	}
 
-	cmds.register("login", handlerLogin)
-	cmds.register("register", handlerRegister)
-	cmds.register("reset", handlerReset)
-	cmds.register("users", handlerUsers)
-	cmds.register("agg", handlerAgg)
-	cmds.register("addfeed", middleWareLoggedIn(handlerAddFeed))
-	cmds.register("feeds", handlerFeeds)
-	cmds.register("follow", middleWareLoggedIn(handlerFollow))
-	cmds.register("following", middleWareLoggedIn(handlerFollowing))
-	cmds.register("unfollow", middleWareLoggedIn(handlerUnfollow))
-	cmds.register("browse", middleWareLoggedIn(handlerBrowse))
-	cmds.register("set-db", handlerSetDb)
+	cmds.register("login", cmdDet{
+		handler:     handlerLogin,
+		description: "login <username>\t\tLogs in user using username"})
+	cmds.register("register", cmdDet{
+		handler:     handlerRegister,
+		description: "register <username>\t\tRegisters a new user"})
+	cmds.register("reset", cmdDet{
+		handler:     handlerReset,
+		description: "reset\t\t\tresets the database to an empty slate. Only for testing purposes"})
+	cmds.register("users", cmdDet{
+		handler:     handlerUsers,
+		description: "users\t\t\tlists registered users"})
+	cmds.register("agg", cmdDet{
+		handler:     handlerAgg,
+		description: "agg <formattedtime>\t\ttaggregates posts from feeds every time amount passed in. ex. 1s, 1m, 1h, 1d"})
+	cmds.register("feeds", cmdDet{
+		handler:     handlerFeeds,
+		description: "feeds\t\t\tlists feeds and user that added it"})
+	cmds.register("set-db", cmdDet{
+		handler:     handlerSetDb,
+		description: "set-db <db-conn-str>\tupdate db connection string in config"})
+	cmds.register("addfeed", cmdDet{
+		handler:     middleWareLoggedIn(handlerAddFeed),
+		description: "addfeed <feedname> <url>\tAdds feed at specified url wiht specified name"})
+	cmds.register("follow", cmdDet{
+		handler:     middleWareLoggedIn(handlerFollow),
+		description: "follow <url>\t\tFollows feed at the given url"})
+	cmds.register("following", cmdDet{
+		handler:     middleWareLoggedIn(handlerFollowing),
+		description: "following\t\t\tLists feeds the logged in user is following"})
+	cmds.register("unfollow", cmdDet{
+		handler:     middleWareLoggedIn(handlerUnfollow),
+		description: "unfollow <feed-url>\t\tunfollows feed at provided url for logged in user"})
+	cmds.register("browse", cmdDet{
+		handler:     middleWareLoggedIn(handlerBrowse),
+		description: "browse <limit>\t\tlist feeds by most recently published. Defaults to limit of 2"})
 
 	if len(os.Args) < 2 {
 		fmt.Println(errors.New("Too few args to run"))
@@ -64,6 +88,13 @@ func main() {
 	cmd := command{
 		name: cmdName,
 		args: cmdArgs,
+	}
+	if cmd.name == "-h" || cmd.name == "--help" {
+		fmt.Println("usage GATOR [command] <args>")
+		for _, val := range cmds.commands {
+			fmt.Printf("    %s\n", val.description)
+		}
+		os.Exit(0)
 	}
 
 	err = cmds.run(&ste, cmd)

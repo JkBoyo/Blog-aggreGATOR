@@ -1,18 +1,27 @@
 package main
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+	"os"
+)
 
 type command struct {
 	name string
 	args []string
 }
 
-type commands struct {
-	commands map[string]func(*state, command) error
+type cmdDet struct {
+	handler     func(*state, command) error
+	description string
 }
 
-func (c *commands) register(name string, f func(*state, command) error) {
-	c.commands[name] = f
+type commands struct {
+	commands map[string]cmdDet
+}
+
+func (c *commands) register(name string, cD cmdDet) {
+	c.commands[name] = cD
 }
 
 func (c *commands) run(s *state, cmd command) error {
@@ -20,5 +29,9 @@ func (c *commands) run(s *state, cmd command) error {
 	if !ok {
 		return errors.New("Command not found")
 	}
-	return f(s, cmd)
+	if cmd.args[0] == "-h" || cmd.args[0] == "--help" {
+		fmt.Println(f.description)
+		os.Exit(0)
+	}
+	return f.handler(s, cmd)
 }
